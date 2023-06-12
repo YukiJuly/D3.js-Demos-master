@@ -136,6 +136,10 @@ def scatter_tutorial_simple():
 def sendfile(fname):
     return flask.send_from_directory('static', fname)
 
+@app.route('/mypage')
+def mypage():
+    return flask.send_from_directory('static', 'mypage.html')
+
 # https://icon-icons.com/icon/heart-love-like-favourite-follow/131237
 # https://icon-icons.com/icon/heart-love-favorite-favourite/13187
 @app.route('/favicon.ico') 
