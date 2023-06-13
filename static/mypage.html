@@ -1,10 +1,68 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+  <meta charset="utf-8">
+  <title>D3.js Path SVG List Example</title>
+  <script src="https://d3js.org/d3.v5.min.js"></script>
 </head>
 <body>
+  <div id="svg-list"></div>
 
+  <script>
+    // Define the paths
+    const data = [
+      {path: 'MD', weight: 0.253},
+      {path: 'MA', weight: 0.193},
+      {path: 'MDM', weight: 0.263},
+      {path: 'MAM', weight: 0.291}
+    ];
+    const paths = [
+      {nodes: ["D", "M"], color: "red"},
+      {nodes: ["M", "A", "M"], color: "green"},
+      {nodes: ["D", "M", "A"], color: "blue"}
+    ];
+
+    // Create the SVG elements for the paths
+    const svgList = d3.select("#svg-list");
+    const pathElements = svgList.selectAll("svg")
+      .data(paths)
+      .join("svg")
+        .attr("width", 350)
+        .attr("height", 50)
+        .style("display", "block");
+
+    pathElements.append("path")
+        .attr("d", d => {
+          const x1 = 50;
+          const y1 = 25;
+          const x2 = 300;
+          const y2 = 25;
+          let path = `M ${x1},${y1}`;
+          for (let i = 0; i < d.nodes.length; i++) {
+            const x = x1 + (i + 1) * (x2 - x1) / (d.nodes.length + 1);
+            const y = y1;
+            path += ` L ${x},${y}`;
+          }
+          path += ` L ${x2},${y2}`;
+          return path;
+        })
+        .attr("stroke", d => d.color)
+        .attr("stroke-width", 2)
+        .attr("fill", "none");
+
+    pathElements.selectAll(".node")
+        .data(d => d.nodes)
+        .join("circle")
+          .attr("class", "node")
+          .attr("cx", (d, i) => 50 + (i + 1) * 250 / (d3.max(paths, p => p.nodes.length) + 1))
+          .attr("cy", 25)
+          .attr("r", 10)
+          .attr("stroke", "black")
+          .attr("fill", d => {
+            if (d === "D") return "white";
+            if (d === "M") return "lightgray";
+            if (d === "A") return "gray";
+          });
+  </script>
 </body>
 </html>
