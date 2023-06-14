@@ -12,17 +12,21 @@
             stroke-linecap: round;
         }
 
-        text {
-            font-size: 12px;
+        .title-text {
+            font-family: Arial;
+            font-style: italic;
             font-weight: bold;
-            text-anchor: middle;
-            dominant-baseline: central;
+            font-size: 26px;
+            background: #f8f8f8;
         }
 
     </style>
     <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
 <body>
+<div id="title">select</div>
+<div id="title1">metapaths</div>
+<div id="title2">score</div>
 <div id="svg-list"></div>
 <script>
     const pathdata = [
@@ -31,19 +35,62 @@
         {path: "MDM", weight: 0.263},
         {path: "MAM", weight: 0.291}
     ];
-
     const svgList = d3.select("#svg-list");
+    const title = d3.select("#title");
+
+    title.append("text")
+        .text("select")
+        .classed("title-text", true)
+        .attr("x", 50)
+
+    title.append("text")
+        .text("metapaths")
+        .classed("title-text", true);
+
+    title.append("text")
+        .text("score")
+        .classed("title-text", true);
+
     // 创建一个 SVG 元素的选择集
     const pathElements = svgList.selectAll("svg")
         .data(pathdata)
         .join("svg")
-        .attr("width", 350)
+        .attr("width", 450)
         .attr("height", 50)
-        .style("display", "block");
+        .attr("transform", (d, i) => `translate(0, 0)`)
+        .style("display", "block")
+        .style("position", "relative"); // 设置父元素的position属性为relative
 
-    pathElements.append("path")
+    // 添加多选框
+    const checkbox = pathElements.append("foreignObject")
+        .attr("width", 60)
+        .attr("height", 30)
+        .attr("transform", (d, i) => `translate(10 , 10)`)
+        .html('<input type="checkbox">');
+
+
+    // 添加评分框
+    const score = pathElements.append("foreignObject")
+        .attr("width", 60)
+        .attr("height", 30)
+        .attr("transform", (d, i) => `translate(370 , 10)`);
+
+    const inputscore = score.append("xhtml:input")
+        .attr("type", "number")
+        .attr("value", d => d.weight)
+        .attr("step", "0.1")
+        .attr("placeholder", "请输入文本")
+        .style("z-index", "9999") // 将评分框的z-index属性设置为一个比较高的值
+        .on("change", function (event, d) {
+            d.weight = +this.value;
+        })
+        .style("width", "50px") // 设置评分框的宽度为50像素
+        .style("height", "20px"); // 设置评分框的高度为20像素
+
+    //创建path直线
+    const paths = pathElements.append("path")
         .attr("d", d => {
-            const x1 = 50;
+            const x1 = 100;
             const y1 = 25;
             const xd = 100;
             const num_points = d.path.length - 1;
@@ -55,22 +102,35 @@
         .attr("stroke-width", 2)
         .attr("fill", "none");
 
-    pathElements.selectAll(".node")
-        .data(d =>{
-            return  d.path.split('')
+    //创建node圆圈及字母
+    const nodes = pathElements.selectAll(".node")
+        .data(d => {
+            return d.path.split('')
         })
-        .join("circle")
+        .join("g")
         .attr("class", "node")
-        .attr("cx", (d, i) => 50 + i * 100)
-        .attr("cy", 25)
-        .attr("r", 20)
+        .attr("transform", (d, i) => `translate(${100 + i * 100}, 25)`);
+
+    nodes.append("circle")
+        .attr("r", 16)
         .attr("stroke", "black")
         .attr("fill", d => {
             if (d === 'D') return "red";
-            if (d === 'M') return "yellow";
+            if (d === 'M') return "black";
             if (d === 'A') return "green";
         });
 
+    nodes.append("text")
+        .text(d => d)
+        .attr("text-anchor", "middle")
+        .attr("alignment-baseline", "middle")
+        .attr("fill", "white")
+        .attr("stroke", "black")
+        .attr("stroke-width", "1px")
+        .style("font-size", "24px")
+        .style("font-weight", "bold")
+        .attr("x", 0)
+        .attr("y", 2);
 
 
 </script>

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>D3.js 绘制元路径示例</title>
+    <style>
+      svg {
+        background-color: #f8f8f8;
+      }
+
+      path {
+        stroke-linecap: round;
+      }
+
+      .M {
+        fill: none;
+      }
+
+      .D {
+        fill: blue;
+      }
+
+      .A {
+        fill: gray;
+      }
+
+      circle {
+        stroke: black;
+        stroke-width: 2px;
+        fill: white;
+      }
+
+      text {
+        font-size: 12px;
+        font-weight: bold;
+        text-anchor: middle;
+        dominant-baseline: central;
+      }
+    </style>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+  </head>
+  <body>
+    <svg width="600" height="200"></svg>
+    <script>
+      function drawPaths() {
+        // 定义三条元路径的数据
+        const pathsData = [
+          [
+            {x: 50, y: 50, type: "M", color: "red"},
+            {x: 150, y: 50, type: "D", color: "blue"},
+          ],
+          [
+            {x: 50, y: 100, type: "M", color: "green"},
+            {x: 150, y: 100, type: "D", color: "orange"},
+            {x: 250, y: 100, type: "M", color: "green"},
+          ],
+          [
+            {x: 50, y: 150, type: "M", color: "purple"},
+            {x: 150, y: 150, type: "A", color: "gray"},
+            {x: 250, y: 150, type: "M", color: "purple"},
+          ],
+        ];
+
+        // 创建一个 SVG 元素的选择集
+        const svg = d3.select("svg");
+
+        // 绑定元路径数据到选择集上
+        const paths = svg.selectAll("path")
+          .data(pathsData)
+          .enter()
+          .append("path");
+
+        // 设置元路径的样式和属性
+        paths.attr("d", d3.line()
+            .x(d => d.x)
+            .y(d => d.y)
+          )
+          .attr("stroke", "black")
+          .attr("stroke-width", 2)
+          .attr("fill", "none");
+
+        // 在元路径上添加实心圆和节点类型的文字
+        const nodes = svg.selectAll(".node")
+          .data(pathsData.flat())
+          .enter()
+          .append("g")
+          .attr("class", "node")
+          .attr("transform", d => `translate(${d.x},${d.y})`);
+
+        nodes.append("circle")
+          .attr("r", 10)
+          .attr("stroke", "black")
+          .attr("stroke-width", 2)
+          .attr("fill", d => {
+            if (d.type === "M") {
+              return "red";
+            } else if (d.type === "D") {
+              return "blue";
+            } else if (d.type === "A") {
+              return "gray";
+            }
+          });
+
+        nodes.append("text")
+          .text(d => d.type)
+          .attr("fill", d => {
+            if (d.type === "M") {
+              return "red";
+            } else if (d.type === "D") {
+              return "blue";
+            } else if (d.type === "A") {
+              return "gray";
+            }
+          })
+          .attr("stroke", "none")
+          .attr("text-anchor", "middle")
+          .attr("dominant-baseline", "central");
+
+        // 返回 SVG 元素的选择集
+        return svg;
+      }
+
+      // 调用函数绘制三条元路径
+      drawPaths();
+    </script>
+  </body>
+</html>
