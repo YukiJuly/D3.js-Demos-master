@@ -1,68 +1,78 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <title>D3.js Path SVG List Example</title>
-  <script src="https://d3js.org/d3.v5.min.js"></script>
+    <meta charset="utf-8">
+    <title>D3.js 绘制元路径示例</title>
+    <style>
+        svg {
+            background-color: #f8f8f8;
+        }
+
+        path {
+            stroke-linecap: round;
+        }
+
+        text {
+            font-size: 12px;
+            font-weight: bold;
+            text-anchor: middle;
+            dominant-baseline: central;
+        }
+
+    </style>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
 <body>
-  <div id="svg-list"></div>
-
-  <script>
-    // Define the paths
-    const data = [
-      {path: 'MD', weight: 0.253},
-      {path: 'MA', weight: 0.193},
-      {path: 'MDM', weight: 0.263},
-      {path: 'MAM', weight: 0.291}
-    ];
-    const paths = [
-      {nodes: ["D", "M"], color: "red"},
-      {nodes: ["M", "A", "M"], color: "green"},
-      {nodes: ["D", "M", "A"], color: "blue"}
+<div id="svg-list"></div>
+<script>
+    const pathdata = [
+        {path: "MD", weight: 0.253},
+        {path: "MA", weight: 0.193},
+        {path: "MDM", weight: 0.263},
+        {path: "MAM", weight: 0.291}
     ];
 
-    // Create the SVG elements for the paths
     const svgList = d3.select("#svg-list");
+    // 创建一个 SVG 元素的选择集
     const pathElements = svgList.selectAll("svg")
-      .data(paths)
-      .join("svg")
+        .data(pathdata)
+        .join("svg")
         .attr("width", 350)
         .attr("height", 50)
         .style("display", "block");
 
     pathElements.append("path")
         .attr("d", d => {
-          const x1 = 50;
-          const y1 = 25;
-          const x2 = 300;
-          const y2 = 25;
-          let path = `M ${x1},${y1}`;
-          for (let i = 0; i < d.nodes.length; i++) {
-            const x = x1 + (i + 1) * (x2 - x1) / (d.nodes.length + 1);
-            const y = y1;
-            path += ` L ${x},${y}`;
-          }
-          path += ` L ${x2},${y2}`;
-          return path;
+            const x1 = 50;
+            const y1 = 25;
+            const xd = 100;
+            const num_points = d.path.length - 1;
+            let path = `M ${x1},${y1}`;
+            path += ` L ${x1 + xd * num_points},${y1}`;
+            return path;
         })
-        .attr("stroke", d => d.color)
+        .attr("stroke", 'black')
         .attr("stroke-width", 2)
         .attr("fill", "none");
 
     pathElements.selectAll(".node")
-        .data(d => d.nodes)
+        .data(d =>{
+            return  d.path.split('')
+        })
         .join("circle")
-          .attr("class", "node")
-          .attr("cx", (d, i) => 50 + (i + 1) * 250 / (d3.max(paths, p => p.nodes.length) + 1))
-          .attr("cy", 25)
-          .attr("r", 10)
-          .attr("stroke", "black")
-          .attr("fill", d => {
-            if (d === "D") return "white";
-            if (d === "M") return "lightgray";
-            if (d === "A") return "gray";
-          });
-  </script>
+        .attr("class", "node")
+        .attr("cx", (d, i) => 50 + i * 100)
+        .attr("cy", 25)
+        .attr("r", 20)
+        .attr("stroke", "black")
+        .attr("fill", d => {
+            if (d === 'D') return "red";
+            if (d === 'M') return "yellow";
+            if (d === 'A') return "green";
+        });
+
+
+
+</script>
 </body>
 </html>
