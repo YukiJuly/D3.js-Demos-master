@@ -24,9 +24,13 @@
     <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
 <body>
-<div id="title">select</div>
-<div id="title1">metapaths</div>
-<div id="title2">score</div>
+<div id="title" class="title-text">
+    <span style="margin-left: 20px;margin-right: 50px;">Select   </span>
+    <span style="margin-right: 50px;">Metapaths</span>
+    <span>Score</span>
+</div>
+
+
 <div id="svg-list"></div>
 <script>
     const pathdata = [
@@ -36,20 +40,20 @@
         {path: "MAM", weight: 0.291}
     ];
     const svgList = d3.select("#svg-list");
-    const title = d3.select("#title");
-
-    title.append("text")
-        .text("select")
-        .classed("title-text", true)
-        .attr("x", 50)
-
-    title.append("text")
-        .text("metapaths")
-        .classed("title-text", true);
-
-    title.append("text")
-        .text("score")
-        .classed("title-text", true);
+    // const title = d3.select("#title");
+    //
+    // title.append("text")
+    //     .text("select")
+    //     .classed("title-text", true)
+    //     .attr("x", 50)
+    //
+    // title.append("text")
+    //     .text("metapaths")
+    //     .classed("title-text", true);
+    //
+    // title.append("text")
+    //     .text("score")
+    //     .classed("title-text", true);
 
     // 创建一个 SVG 元素的选择集
     const pathElements = svgList.selectAll("svg")
