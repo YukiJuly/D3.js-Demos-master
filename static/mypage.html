@@ -45,8 +45,18 @@
 <div id="title-newpath" class="title-text">
     Create New Metapath
 </div>
-<div id="add-metapath">
-
+<div>
+  <form id="add-metapath">
+    <input id="input-metapath"
+           type="text"
+           value=""
+           placeholder="请输入想要添加的元路径"
+           style="width: 200px; height: 20px; margin-right: 10px;">
+    <button type="submit">确认</button>
+  </form>
+  <div>
+    <ul id="metapath-list"></ul>
+  </div>
 </div>
 <script>
     const pathdata = [
@@ -57,20 +67,7 @@
         {path: "APCP", weight: 0.378}
     ];
     const svgList = d3.select("#svg-list");
-    // const title = d3.select("#title");
-    //
-    // title.append("text")
-    //     .text("select")
-    //     .classed("title-text", true)
-    //     .attr("x", 50)
-    //
-    // title.append("text")
-    //     .text("metapaths")
-    //     .classed("title-text", true);
-    //
-    // title.append("text")
-    //     .text("score")
-    //     .classed("title-text", true);
+
 
     // 创建一个 SVG 元素的选择集
     const pathElements = svgList.selectAll("svg")
@@ -153,31 +150,19 @@
         .attr("x", 0)
         .attr("y", 2);
 
-    //绘制要添加的新metapath
-    const addpath = d3.select("#add-metapath");
-    //绘制syg
-    const newpath = addpath.selectAll("svg")
-        .data("A")
-        .join("svg")
-        .attr("width", 450)
-        .attr("height", 20)
-        .attr("transform", (d, i) => `translate(0, 0)`)
-        .style("display", "block")
-        .style("position", "relative"); // 设置父元素的position属性为relative
+    const newmetapath = document.getElementById("add-metapath");
+    const inputBox = document.getElementById("input-metapath");
 
-    addpath.append("path")
-        .attr("d", d => {
-            const x1 = 100;
-            const y1 = 155;
-            const xd = 50;
-            const num_points = 4;
-            let path = `M ${x1},${y1}`;
-            path += ` L ${x1 + xd * num_points},${y1}`;
-            return path;
-        })
-        .attr("stroke", 'black')
-        .attr("stroke-width", 2)
-        .attr("fill", "none");
+    console.log(newmetapath)
+    newmetapath.addEventListener("submit", function (event) {
+        event.preventDefault(); // 阻止表单默认提交行为
+        const inputValue = inputBox.value.trim();
+        if (inputValue !== "") {
+            pathdata.push( {path: inputValue, weight: 0.170});
+            location.reload();
+        }
+    });
+
 
 </script>
 </body>
