@@ -22,6 +22,35 @@
             background: #f8f8f8;
         }
 
+        .delete-button {
+            position: absolute;
+            right: 10px;
+            top: 0px;
+            width: 30px;
+            height: 30px;
+            background-color: black;
+            border: 2px solid white;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .delete-button:before, .delete-button:after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 15px;
+            height: 2px;
+            background-color: white;
+        }
+
+        .delete-button:before {
+            transform: translate(-50%, -50%) rotate(45deg);
+        }
+
+        .delete-button:after {
+            transform: translate(-50%, -50%) rotate(-45deg);
+        }
     </style>
     <script src="https://d3js.org/d3.v7.min.js"></script>
 </head>
@@ -46,109 +75,153 @@
     Create New Metapath
 </div>
 <div>
-  <form id="add-metapath">
-    <input id="input-metapath"
-           type="text"
-           value=""
-           placeholder="请输入想要添加的元路径"
-           style="width: 200px; height: 20px; margin-right: 10px;">
-    <button type="submit">确认</button>
-  </form>
-  <div>
-    <ul id="metapath-list"></ul>
-  </div>
+    <form id="add-metapath">
+        <input id="input-metapath"
+               type="text"
+               value=""
+               placeholder="请输入想要添加的元路径"
+               style="width: 200px; height: 20px; margin-right: 10px;">
+        <button type="submit">确认</button>
+    </form>
+    <div>
+        <ul id="metapath-list"></ul>
+    </div>
 </div>
 <script>
-    const pathdata = [
-        {path: "AP", weight: 0.170},
-        {path: "APA", weight: 0.154},
-        {path: "APC", weight: 0.144},
-        {path: "APAP", weight: 0.151},
-        {path: "APCP", weight: 0.378}
-    ];
-    const svgList = d3.select("#svg-list");
+    // 用于获取 pathdata 数据的 API 接口
+    const apiUrl = "http://localhost:5000/pathdata";
 
+    let pathdata = {}
+    // 在页面加载完成后，从后端获取 pathdata 数据并显示
+    window.addEventListener("load", function () {
+        fetch(apiUrl)
+            .then(response => response.json())
+            .then(data => {
+                pathdata = data;
+                displayMetapaths();
+            })
+            .catch(error => console.error(error));
+    });
 
-    // 创建一个 SVG 元素的选择集
-    const pathElements = svgList.selectAll("svg")
-        .data(pathdata)
-        .join("svg")
-        .attr("width", 450)
-        .attr("height", 50)
-        .attr("transform", (d, i) => `translate(0, 0)`)
-        .style("display", "block")
-        .style("position", "relative"); // 设置父元素的position属性为relative
+    console.log(pathdata)
 
-    // 添加多选框
-    const checkbox = pathElements.append("foreignObject")
-        .attr("width", 60)
-        .attr("height", 30)
-        .attr("transform", (d, i) => `translate(10 , 10)`)
-        .html('<input type="checkbox">');
-
-
-    // 添加评分框
-    const score = pathElements.append("foreignObject")
-        .attr("width", 60)
-        .attr("height", 30)
-        .attr("transform", (d, i) => `translate(370 , 10)`);
-
-    const inputscore = score.append("xhtml:input")
-        .attr("type", "number")
-        .attr("value", d => d.weight)
-        .attr("step", "0.1")
-        .attr("placeholder", "请输入文本")
-        .style("z-index", "9999") // 将评分框的z-index属性设置为一个比较高的值
-        .on("change", function (event, d) {
-            d.weight = +this.value;
+    // 将 pathdata 数据保存到后端并重新显示
+    function saveMetapaths() {
+        fetch(apiUrl, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(pathdata)
         })
-        .style("width", "50px") // 设置评分框的宽度为50像素
-        .style("height", "20px"); // 设置评分框的高度为20像素
+            .then(() => displayMetapaths())
+            .catch(error => console.error(error));
+    }
 
-    //创建path直线
-    const paths = pathElements.append("path")
-        .attr("d", d => {
-            const x1 = 100;
-            const y1 = 25;
-            const xd = 50;
-            const num_points = d.path.length - 1;
-            let path = `M ${x1},${y1}`;
-            path += ` L ${x1 + xd * num_points},${y1}`;
-            return path;
-        })
-        .attr("stroke", 'black')
-        .attr("stroke-width", 2)
-        .attr("fill", "none");
+    function displayMetapaths() {
+        const svgList = d3.select("#svg-list");
 
-    //创建node圆圈及字母
-    const nodes = pathElements.selectAll(".node")
-        .data(d => {
-            return d.path.split('')
-        })
-        .join("g")
-        .attr("class", "node")
-        .attr("transform", (d, i) => `translate(${100 + i * 50}, 25)`);
 
-    nodes.append("circle")
-        .attr("r", 16)
-        .attr("stroke", "black")
-        .attr("fill", d => {
-            if (d === 'P') return "red";
-            if (d === 'A') return "black";
-            if (d === 'C') return "green";
-        });
+        // 创建一个 SVG 元素的选择集
+        const pathElements = svgList.selectAll("svg")
+            .data(pathdata)
+            .join("svg")
+            .attr("width", 450)
+            .attr("height", 50)
+            .attr("transform", (d, i) => `translate(0, 0)`)
+            .style("display", "block")
+            .style("position", "relative"); // 设置父元素的position属性为relative
 
-    nodes.append("text")
-        .text(d => d)
-        .attr("text-anchor", "middle")
-        .attr("alignment-baseline", "middle")
-        .attr("fill", "white")
-        .attr("stroke", "black")
-        .attr("stroke-width", "1px")
-        .style("font-size", "24px")
-        .style("font-weight", "bold")
-        .attr("x", 0)
-        .attr("y", 2);
+        // 添加多选框
+        const checkbox = pathElements.append("foreignObject")
+            .attr("width", 60)
+            .attr("height", 30)
+            .attr("transform", (d, i) => `translate(10 , 10)`)
+            .html('<input type="checkbox">');
+
+        // 为每个元路径添加一个删除按钮
+        const deleteButton = pathElements.append("foreignObject")
+            .attr("width", 60)
+            .attr("height", 30)
+            .attr("transform", (d, i) => `translate(300 , 10)`)
+            .html('<button class="delete-button">')
+            .on("click", function (d) {
+                // 从pathdata中删除对应的元路径
+                const index = pathdata.indexOf(d);
+                if (index !== -1) {
+                    pathdata.splice(index, 1);
+                    saveMetapaths();
+                }
+            });
+        ;
+
+
+        // 添加评分框
+        const score = pathElements.append("foreignObject")
+            .attr("width", 60)
+            .attr("height", 30)
+            .attr("transform", (d, i) => `translate(370 , 10)`);
+
+        const inputscore = score.append("xhtml:input")
+            .attr("type", "number")
+            .attr("value", d => d.weight)
+            .attr("step", "0.1")
+            .attr("placeholder", "请输入文本")
+            .style("z-index", "9999") // 将评分框的z-index属性设置为一个比较高的值
+            .on("change", function (event, d) {
+                d.weight = +this.value;
+            })
+            .style("width", "50px") // 设置评分框的宽度为50像素
+            .style("height", "20px"); // 设置评分框的高度为20像素
+
+        //创建path直线
+        const paths = pathElements.append("path")
+            .attr("d", d => {
+                const x1 = 100;
+                const y1 = 25;
+                const xd = 50;
+                const num_points = d.path.length - 1;
+                let path = `M ${x1},${y1}`;
+                path += ` L ${x1 + xd * num_points},${y1}`;
+                return path;
+            })
+            .attr("stroke", 'black')
+            .attr("stroke-width", 2)
+            .attr("fill", "none");
+
+        //创建node圆圈及字母
+        const nodes = pathElements.selectAll(".node")
+            .data(d => {
+                return d.path.split('')
+            })
+            .join("g")
+            .attr("class", "node")
+            .attr("transform", (d, i) => `translate(${100 + i * 50}, 25)`);
+
+        nodes.append("circle")
+            .attr("r", 16)
+            .attr("stroke", "black")
+            .attr("fill", d => {
+                if (d === 'P') return "red";
+                if (d === 'A') return "black";
+                if (d === 'C') return "green";
+            });
+
+        nodes.append("text")
+            .text(d => d)
+            .attr("text-anchor", "middle")
+            .attr("alignment-baseline", "middle")
+            .attr("fill", "white")
+            .attr("stroke", "black")
+            .attr("stroke-width", "1px")
+            .style("font-size", "24px")
+            .style("font-weight", "bold")
+            .attr("x", 0)
+            .attr("y", 2);
+
+    }
+
+    //添加metapath
 
     const newmetapath = document.getElementById("add-metapath");
     const inputBox = document.getElementById("input-metapath");
@@ -158,8 +231,8 @@
         event.preventDefault(); // 阻止表单默认提交行为
         const inputValue = inputBox.value.trim();
         if (inputValue !== "") {
-            pathdata.push( {path: inputValue, weight: 0.170});
-            location.reload();
+            pathdata.push({path: inputValue, weight: 0.0});
+            saveMetapaths();
         }
     });
 
