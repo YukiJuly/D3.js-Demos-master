@@ -8,11 +8,11 @@ CORS(app)
 
 # 初始的 pathdata 数据
 pathdata = [
-    {"path": "AP", "weight": 0.170},
-    {"path": "APA", "weight": 0.154},
-    {"path": "APC", "weight": 0.144},
-    {"path": "APAP", "weight": 0.151},
-    {"path": "APCP", "weight": 0.378}
+    {"id": 0, "path": "AP", "weight": 0.170},
+    {"id": 1, "path": "APA", "weight": 0.154},
+    {"id": 2, "path": "APC", "weight": 0.144},
+    {"id": 3, "path": "APAP", "weight": 0.151},
+    {"id": 4, "path": "APCP", "weight": 0.378}
 ];
 
 @app.route('/mypage')

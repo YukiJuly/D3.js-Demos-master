@@ -75,35 +75,45 @@
     Create New Metapath
 </div>
 <div>
-    <form id="add-metapath">
+    <form id="add-metapath" style="width: 450px; height: 30px;background:#f8f8f8" ;>
         <input id="input-metapath"
                type="text"
                value=""
                placeholder="请输入想要添加的元路径"
-               style="width: 200px; height: 20px; margin-right: 10px;">
+               style="width: 200px; height: 20px; margin-right: 100px;">
         <button type="submit">确认</button>
     </form>
-    <div>
-        <ul id="metapath-list"></ul>
-    </div>
 </div>
+<button id="generateembedding" style="width: 250px; height: 30px;margin-left: 100px;background:#f8f8f8" ;>
+    生成降维投影
+</button>
 <script>
     // 用于获取 pathdata 数据的 API 接口
     const apiUrl = "http://localhost:5000/pathdata";
 
-    let pathdata = {}
+    let pathdata = []
+    let nextId = 0;
+    //正则表达判断是否符合metapath
+    const regex = /^A(P[AC]*|C[CP]*|)$/;
     // 在页面加载完成后，从后端获取 pathdata 数据并显示
     window.addEventListener("load", function () {
         fetch(apiUrl)
             .then(response => response.json())
             .then(data => {
                 pathdata = data;
+                nextId = pathdata.length;
+                console.log(pathdata);
+                console.log(nextId);
                 displayMetapaths();
             })
             .catch(error => console.error(error));
     });
 
-    console.log(pathdata)
+
+    function orderElements() {
+        svg.selectAll("g.path-group")
+            .sort((a, b) => d3.ascending(a.index, b.index));
+    }
 
     // 将 pathdata 数据保存到后端并重新显示
     function saveMetapaths() {
@@ -126,6 +136,7 @@
         const pathElements = svgList.selectAll("svg")
             .data(pathdata)
             .join("svg")
+            .attr("data-id", d => d.id) //添加自定义属性
             .attr("width", 450)
             .attr("height", 50)
             .attr("transform", (d, i) => `translate(0, 0)`)
@@ -144,15 +155,21 @@
             .attr("width", 60)
             .attr("height", 30)
             .attr("transform", (d, i) => `translate(300 , 10)`)
-            .html('<button class="delete-button">')
-            .on("click", function (d) {
-                // 从pathdata中删除对应的元路径
-                const index = pathdata.indexOf(d);
-                if (index !== -1) {
-                    pathdata.splice(index, 1);
-                    saveMetapaths();
-                }
-            });
+            .html('<button class="delete-button">');
+
+        deleteButton.on("click", function (d) {
+            // 从pathdata中删除对应的元路径
+            const id = +d3.select(this.parentNode).attr("data-id"); //获取对应的ID
+            const index = pathdata.findIndex(p => p.id === id); //查找对应的元路径
+            console.log("Deleting path at index " + index);
+
+            if (index !== -1) {
+                console.log("Deleting path at index " + index);
+                pathdata.splice(index, 1);
+                saveMetapaths();
+                orderElements(); // 重新排序SVG元素
+            }
+        });
         ;
 
 
@@ -187,7 +204,8 @@
             })
             .attr("stroke", 'black')
             .attr("stroke-width", 2)
-            .attr("fill", "none");
+            .attr("fill", "none")
+            .style("z-index", "0"); // 将评分框的z-index属性设置为一个比较高的值
 
         //创建node圆圈及字母
         const nodes = pathElements.selectAll(".node")
@@ -196,7 +214,8 @@
             })
             .join("g")
             .attr("class", "node")
-            .attr("transform", (d, i) => `translate(${100 + i * 50}, 25)`);
+            .attr("transform", (d, i) => `translate(${100 + i * 50}, 25)`)
+            .style("z-index", "20"); // 将评分框的z-index属性设置为一个比较高的值;
 
         nodes.append("circle")
             .attr("r", 16)
@@ -221,18 +240,22 @@
 
     }
 
-    //添加metapath
+    //用户添加metapath
 
     const newmetapath = document.getElementById("add-metapath");
     const inputBox = document.getElementById("input-metapath");
 
-    console.log(newmetapath)
     newmetapath.addEventListener("submit", function (event) {
         event.preventDefault(); // 阻止表单默认提交行为
         const inputValue = inputBox.value.trim();
-        if (inputValue !== "") {
-            pathdata.push({path: inputValue, weight: 0.0});
+        if (inputValue !== "" && regex.test(inputValue)) {
+            pathdata.push({id: nextId, path: inputValue, weight: 0.0});
+            nextId += 1;
             saveMetapaths();
+            orderElements(); // 重新排序SVG元素
+        }
+        else{
+            alert("输入的metapath不合法，请重新输入！");
         }
     });
 
