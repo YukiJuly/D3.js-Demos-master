@@ -57,11 +57,14 @@
 <body>
 <div id="selecttype" class="title-text">
     <span style="margin-left: 10px;margin-right: 150px;">Select Node Type</span>
-    <select>
+    <select style="width: 50px; height: 30px;">
         <option value="option1" selected>A</option>
         <option value="option2">P</option>
         <option value="option3">C</option>
     </select>
+</div>
+<div id="span" class="title-text">
+
 </div>
 <div id="title3" class="title-text">
     <span style="margin-left: 10px;margin-right: 60px;">Select</span>
@@ -71,6 +74,9 @@
 
 
 <div id="svg-list"></div>
+<div id="span1" class="title-text">
+
+</div>
 <div id="title-newpath" class="title-text">
     Create New Metapath
 </div>
@@ -79,22 +85,32 @@
         <input id="input-metapath"
                type="text"
                value=""
-               placeholder="请输入想要添加的元路径"
-               style="width: 200px; height: 20px; margin-right: 100px;">
-        <button type="submit">确认</button>
+               placeholder="Enter new metapath"
+               style="width: 200px; height: 20px; margin-right: 150px;">
+        <button type="submit">Submit</button>
     </form>
 </div>
-<button id="generateembedding" style="width: 250px; height: 30px;margin-left: 100px;background:#f8f8f8" ;>
-    生成降维投影
-</button>
+<div id="span2" class="title-text">
+
+</div>
+<div id="generate" style="width: 450px; height: 30px;background:#f8f8f8" ;>
+    <button id="generateembedding"
+            style="width: 250px; height: 30px;margin-left: 100px;background:#f8f8f8;border-radius: 10px; background-color: darkblue; color: white; padding: 10px 20px;font-size: 15px;line-height:5px">
+        Generate Projection
+    </button>
+</div>
+<div id="graph" style="width: 200px; height: 200px;background:#f8f8f8" ;>
+
+</div>
 <script>
     // 用于获取 pathdata 数据的 API 接口
+    displayGraph();
     const apiUrl = "http://localhost:5000/pathdata";
 
     let pathdata = []
     let nextId = 0;
     //正则表达判断是否符合metapath
-    const regex = /^A(P[AC]*|C[CP]*|)$/;
+    const regex = /^A[APC]*$/;
     // 在页面加载完成后，从后端获取 pathdata 数据并显示
     window.addEventListener("load", function () {
         fetch(apiUrl)
@@ -126,6 +142,85 @@
         })
             .then(() => displayMetapaths())
             .catch(error => console.error(error));
+    }
+
+    //显示图结构
+    function displayGraph() {
+        const data = {
+            nodes: [
+                {id: "A"},
+                {id: "P"},
+                {id: "C"}
+            ],
+            links: [
+                {source: "A", target: "P", label: "cite"},
+                {source: "P", target: "A", label: "cited"},
+                {source: "P", target: "C", label: "published"},
+                {source: "C", target: "P", label: "publish"}
+            ]
+        };
+
+        const graphSvg = d3.selectAll("graph");
+
+        const link = graphSvg.append("g")
+            .attr("stroke", "#999")
+            .attr("stroke-opacity", 0.6)
+            .selectAll("line")
+            .data(data.links)
+            .join("line")
+            .attr("marker-end", "url(#arrowhead)")
+            .attr("stroke-width", 2);
+
+        const arrowhead = graphSvg.append("svg:defs")
+            .selectAll("marker")
+            .data(["end"])
+            .join("marker")
+            .attr("id", "arrowhead")
+            .attr("viewBox", "0 -5 10 10")
+            .attr("refX", 20)
+            .attr("markerWidth", 8)
+            .attr("markerHeight", 8)
+            .attr("orient", "auto")
+            .append("path")
+            .attr("d", "M0,-5L10,0L0,5");
+
+        const node = graphSvg.append("g")
+            .attr("fill", "#fff")
+            .attr("stroke", "#000")
+            .attr("stroke-width", 2)
+            .selectAll("circle")
+            .data(data.nodes)
+            .join("circle")
+            .attr("r", 20)
+            .attr("cx", (d, i) => (i + 1) * 60)
+            .attr("cy", 100);
+
+        const label = graphSvg.append("g")
+            .attr("font-family", "sans-serif")
+            .attr("font-size", 12)
+            .selectAll("text")
+            .data(data.links)
+            .join("text")
+            .text(d => d.label)
+            .attr("x", d => (d.source.x + d.target.x) / 2)
+            .attr("y", d => (d.source.y + d.target.y) / 2);
+
+        const simulation = d3.forceSimulation(data.nodes)
+            .force("link", d3.forceLink(data.links).id(d => d.id).distance(80))
+            .force("charge", d3.forceManyBody().strength(-200))
+            .force("center", d3.forceCenter(100, 100))
+            .on("tick", () => {
+                link.attr("x1", d => d.source.x)
+                    .attr("y1", d => d.source.y)
+                    .attr("x2", d => d.target.x)
+                    .attr("y2", d => d.target.y);
+
+                node.attr("cx", d => d.x)
+                    .attr("cy", d => d.y);
+
+                label.attr("x", d => (d.source.x + d.target.x) / 2)
+                    .attr("y", d => (d.source.y + d.target.y) / 2);
+            });
     }
 
     function displayMetapaths() {
@@ -253,8 +348,7 @@
             nextId += 1;
             saveMetapaths();
             orderElements(); // 重新排序SVG元素
-        }
-        else{
+        } else {
             alert("输入的metapath不合法，请重新输入！");
         }
     });
